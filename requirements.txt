@@ -15,3 +15,4 @@ email-validator
 pandas
 httpx
 # force rebuild
+bcrypt==4.0.1

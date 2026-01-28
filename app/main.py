@@ -13,12 +13,10 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI(title="Proyecto FOCUS API", version="0.1.0")
 
 # CORS
-origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

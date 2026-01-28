@@ -19,6 +19,7 @@ class User(UserBase):
     plan_type: str = "demo"
     trial_end_at: Optional[datetime] = None
     subscription_active: bool = False
+    checkout_url: Optional[str] = None
     
     class Config:
         from_attributes = True
