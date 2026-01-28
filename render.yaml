@@ -1,0 +1,49 @@
+{
+  "name": "salon-plus-backend",
+  "type": "web",
+  "runtime": "python",
+  "buildCommand": "pip install -r requirements.txt",
+  "startCommand": "python start.py",
+  "envVars": [
+    {
+      "key": "DATABASE_URL",
+      "value": "postgresql://postgres.wnzpltxackalafxrbeix:FLORENCIA2010JULIETA2022@aws-0-us-west-2.pooler.supabase.com:6543/postgres?sslmode=require"
+    },
+    {
+      "key": "JWT_SECRET",
+      "value": "salon_secure_autogen_2026"
+    },
+    {
+      "key": "SMTP_HOST",
+      "value": "smtp.gmail.com"
+    },
+    {
+      "key": "SMTP_PORT",
+      "value": "587"
+    },
+    {
+      "key": "SMTP_USER",
+      "value": "contacto@automatizasur.cl"
+    },
+    {
+      "key": "SMTP_PASSWORD",
+      "value": "iwqe xmng rari zqhu"
+    },
+    {
+      "key": "SENDER_EMAIL",
+      "value": "contacto@automatizasur.cl"
+    },
+    {
+      "key": "FUDO_BASE_URL",
+      "value": "https://app-v2.fu.do"
+    },
+    {
+      "key": "FUDO_CLIENT_ID",
+      "value": "MDAwMDI6MTkxNDcz"
+    },
+    {
+      "key": "FUDO_CLIENT_SECRET",
+      "value": "DbJcsn8gNJYI3IOMwVmkMUCx"
+    }
+  ]
+}
