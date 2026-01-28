@@ -13,3 +13,4 @@ mercadopago
 requests
 email-validator
 pandas
+httpx
