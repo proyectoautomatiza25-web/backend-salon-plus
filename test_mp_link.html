@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Mercado Pago - Salon Plus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #009ee3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #0088cc;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🧪 Test de Pago - Mercado Pago</h1>
+
+        <div class="info">
+            <h3>Plan ID configurado:</h3>
+            <code>f9f6fb0ec30d41ecbe6b18ea75f8ecd9</code>
+
+            <h3 style="margin-top: 20px;">Usuario de prueba:</h3>
+            <p><strong>Email:</strong> TESTUSER804740506377253072</p>
+            <p><strong>Password:</strong> k5Ub1EWDKh</p>
+        </div>
+
+        <button onclick="testDirectLink()">
+            🔗 Abrir Link Directo de Mercado Pago
+        </button>
+
+        <div id="error" class="error"></div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 5px;">
+            <h3>URL que se abrirá:</h3>
+            <p id="url-display" style="word-break: break-all; font-size: 12px; color: #666;"></p>
+        </div>
+    </div>
+
+    <script>
+        const PLAN_ID = 'f9f6fb0ec30d41ecbe6b18ea75f8ecd9';
+        const TEST_USER_ID = 'test-user-123';
+        const TEST_EMAIL = 'vencido@salonplus.cl';
+
+        function testDirectLink() {
+            const url = `https://www.mercadopago.cl/subscriptions/checkout?preapproval_plan_id=${PLAN_ID}&external_reference=${TEST_USER_ID}&payer_email=${encodeURIComponent(TEST_EMAIL)}`;
+
+            document.getElementById('url-display').textContent = url;
+
+            console.log('Abriendo URL:', url);
+
+            // Abrir en nueva ventana
+            const newWindow = window.open(url, '_blank');
+
+            if (!newWindow) {
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = '❌ El navegador bloqueó la ventana emergente. Por favor permite ventanas emergentes para este sitio.';
+            } else {
+                setTimeout(() => {
+                    alert('✅ Si la página de Mercado Pago se abrió correctamente, el link funciona!\n\nUsa estos datos para pagar:\nUsuario: TESTUSER804740506377253072\nPassword: k5Ub1EWDKh');
+                }, 1000);
+            }
+        }
+
+        // Mostrar URL al cargar
+        window.onload = function () {
+            const url = `https://www.mercadopago.cl/subscriptions/checkout?preapproval_plan_id=${PLAN_ID}&external_reference=${TEST_USER_ID}&payer_email=${encodeURIComponent(TEST_EMAIL)}`;
+            document.getElementById('url-display').textContent = url;
+        };
+    </script>
+</body>
+
+</html>

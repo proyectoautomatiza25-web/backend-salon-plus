@@ -7,13 +7,14 @@ from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Subscriptions"])
 
-# Configurar SDK de MercadoPago
-mp_access_token = os.getenv("MP_ACCESS_TOKEN", "TEST-6703285773653661-012801-c9c03ce8a2bfda961701efaca8b49025-3164912896")
-mp_plan_id = os.getenv("MP_PLAN_ID", "f9f6fb0ec30d41ecbe6b18ea75f8ecd9")
+# Configurar SDK de MercadoPago - PRODUCCIÓN
+mp_access_token = os.getenv("MP_ACCESS_TOKEN", "APP_USR-6703285773653661-012801-f17be76f714591ed53de2d4beeb4e6fa-3164912896")
+mp_plan_id = os.getenv("MP_PLAN_ID", "d9c3eb0556424b3b87f54c8f438e4c0d")
 sdk = mercadopago.SDK(mp_access_token)
 
 @router.post("/create-subscription")
 async def create_subscription(
+    plan_id: str = None,
     current_user: models.User = Depends(auth.get_current_user)
 ):
     """
