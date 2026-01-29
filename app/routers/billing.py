@@ -17,30 +17,20 @@ async def create_subscription(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     """
-    Crea una suscripción vinculada al plan configurado.
+    Retorna el link directo de suscripción al plan de Mercado Pago.
     """
     if not mp_plan_id:
         raise HTTPException(status_code=500, detail="MP_PLAN_ID no configurado")
 
-    preapproval_data = {
-        "preapproval_plan_id": mp_plan_id,
-        "payer_email": current_user.email,
-        "back_url": f"{os.getenv('FRONTEND_URL', 'http://localhost:5173')}/subscription-success",
-        "external_reference": current_user.id,
-        "status": "pending"
-    }
+    # Usamos el link directo del checkout del plan. 
+    # Mercado Pago permite pasar external_reference en la URL para algunos tipos de checkout.
+    # Si no, usaremos el email para conciliar en el webhook.
+    checkout_url = f"https://www.mercadopago.cl/subscriptions/checkout?preapproval_plan_id={mp_plan_id}&external_reference={current_user.id}"
+    
+    # También podemos pre-cargar el email del pagador si el checkout lo soporta
+    checkout_url += f"&payer_email={current_user.email}"
 
-    try:
-        preference_response = sdk.preapproval().create(preapproval_data)
-        response_json = preference_response["response"]
-        
-        init_point = response_json.get("init_point") or response_json.get("sandbox_init_point")
-        
-        return {"url": init_point, "id": response_json.get("id")}
-
-    except Exception as e:
-        print(f"Error creando suscripción MP: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {"url": checkout_url}
 
 @router.post("/webhook/mercadopago")
 async def mercadopago_webhook(request: Request, db: Session = Depends(database.get_db)):
@@ -60,22 +50,28 @@ async def mercadopago_webhook(request: Request, db: Session = Depends(database.g
             sub_data = subscription_response["response"]
             
             external_ref = sub_data.get("external_reference")
+            payer_email = sub_data.get("payer_email")
             status_mp = sub_data.get("status")
             
+            user = None
             if external_ref:
                 user = db.query(models.User).filter(models.User.id == external_ref).first()
-                if user:
-                    if status_mp == "authorized":
-                        user.subscription_active = True
-                        user.plan_type = "pro"
-                        user.stripe_subscription_id = resource_id # Usamos column existente por ahora
-                        print(f"✅ Suscripción ACTIVADA para usuario {user.email}")
-                    
-                    elif status_mp in ["cancelled", "paused"]:
-                        user.subscription_active = False
-                        print(f"❌ Suscripción PAUSADA/CANCELADA para usuario {user.email}")
-                    
-                    db.commit()
+            
+            if not user and payer_email:
+                user = db.query(models.User).filter(models.User.email == payer_email).first()
+
+            if user:
+                if status_mp == "authorized":
+                    user.subscription_active = True
+                    user.plan_type = "pro"
+                    user.stripe_subscription_id = resource_id
+                    print(f"✅ Suscripción ACTIVADA para usuario {user.email}")
+                
+                elif status_mp in ["cancelled", "paused"]:
+                    user.subscription_active = False
+                    print(f"❌ Suscripción PAUSADA/CANCELADA para usuario {user.email}")
+                
+                db.commit()
 
         return {"status": "ok"}
         
