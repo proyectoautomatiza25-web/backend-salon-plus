@@ -20,17 +20,18 @@ async def create_subscription(
     """
     Retorna el link directo de suscripción al plan de Mercado Pago.
     """
+    print(f"DEBUG: create_subscription called for {current_user.email} with plan_id={plan_id}")
+    
     if not mp_plan_id:
+        print("ERROR: mp_plan_id is missing in environment")
         raise HTTPException(status_code=500, detail="MP_PLAN_ID no configurado")
 
-    # Usamos el link directo del checkout del plan. 
-    # Mercado Pago permite pasar external_reference en la URL para algunos tipos de checkout.
-    # Si no, usaremos el email para conciliar en el webhook.
-    checkout_url = f"https://www.mercadopago.cl/subscriptions/checkout?preapproval_plan_id={mp_plan_id}&external_reference={current_user.id}"
+    # Forzamos el uso del plan de producción correcto sin importar lo que mande el frontend
+    target_plan = mp_plan_id
     
-    # También podemos pre-cargar el email del pagador si el checkout lo soporta
-    checkout_url += f"&payer_email={current_user.email}"
-
+    checkout_url = f"https://www.mercadopago.cl/subscriptions/checkout?preapproval_plan_id={target_plan}&external_reference={current_user.id}&payer_email={current_user.email}"
+    
+    print(f"DEBUG: Returning checkout_url={checkout_url}")
     return {"url": checkout_url}
 
 @router.post("/webhook/mercadopago")
