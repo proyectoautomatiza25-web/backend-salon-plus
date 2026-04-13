@@ -1,0 +1,10 @@
+{
+  "v1_sales": {
+    "status": 404,
+    "text": ""
+  },
+  "sales": {
+    "status": 200,
+    "text": "{\"42945\":{\"additions\":[{\"id\":139425,\"canceled\":null,\"cancellationComment\":null,\"count\":1.0,\"comboAdditions\":[],\"comment\":\"Viene de mesa 14.\",\"createdAt\":\"2026-03-03T16:37:12-03:00\",\"discounts\":[],\"price\":4950.0,\"priceListId\":null,\"productId\":217,\"paid\":null,\"status\":\"PENDING\"},{\"id\":139458,\"canceled\":null,\"cancellationComment\":null,\"count\":1.0,\"comboAdditions\":[],\"comment\":null,\"createdAt\":\"2026-03-03T17:56:28-03:00\",\"discounts\":[],\"price\":4950.0,\"priceListId\":null,\"productId\":217,\"paid\":null,\"s"
+  }
+}

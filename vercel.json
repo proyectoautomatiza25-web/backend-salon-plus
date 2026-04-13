@@ -1,15 +1,18 @@
 {
-    "version": 2,
-    "builds": [
+    "rewrites": [
         {
-            "src": "app/main.py",
-            "use": "@vercel/python"
+            "source": "/(.*)",
+            "destination": "/api/index.py"
         }
     ],
-    "routes": [
+    "crons": [
         {
-            "src": "/(.*)",
-            "dest": "app/main.py"
+            "path": "/api/fudo/sync-sales?hours=2",
+            "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/fudo/sync-menu",
+            "schedule": "0 3 * * *"
         }
     ]
 }

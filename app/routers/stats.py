@@ -8,36 +8,45 @@ from .. import database, models, schemas, auth
 router = APIRouter(prefix="/api", tags=["Stats"])
 
 @router.get("/dashboard/resumen", response_model=schemas.DashboardStats)
-def get_dashboard_summary(dias: int = 30, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def get_dashboard_summary(dias: int = 30, db: Session = Depends(database.get_db)):
     fecha_limite = datetime.utcnow() - timedelta(days=dias)
     
-    # Base Stats
+    # Base Stats (Ventas)
     query = db.query(models.Venta).filter(models.Venta.fecha >= fecha_limite)
-    
     total_ventas = query.with_entities(func.sum(models.Venta.importe_total)).scalar() or 0
     cantidad_ventas = query.count()
     ticket_promedio = (total_ventas / cantidad_ventas) if cantidad_ventas > 0 else 0
     
+    # Base Stats (Gastos desde Ruka/DB)
+    total_gastos = db.query(func.sum(models.Compra.monto_total)).filter(models.Compra.fecha >= fecha_limite).scalar() or 0
+    utilidad_neta = float(total_ventas) - float(total_gastos)
+
     # Ventas por Canal
     canal_stats = query.with_entities(models.Venta.canal, func.sum(models.Venta.importe_total)).group_by(models.Venta.canal).all()
     ventas_por_canal = [{"canal": c, "total": float(t or 0)} for c, t in canal_stats]
     
     # Top Productos
-    top_prods_q = db.query(
-        models.ItemVenta.producto_nombre, 
-        func.sum(models.ItemVenta.subtotal).label('total')
-    ).join(models.Venta).filter(models.Venta.fecha >= fecha_limite).group_by(models.ItemVenta.producto_nombre).order_by(desc('total')).limit(5).all()
-    top_productos = [{"nombre": n, "total": float(t)} for n, t in top_prods_q]
-
-    # Top Clientes
-    top_cli_q = db.query(
-        models.Cliente.nombre,
-        func.sum(models.Venta.importe_total).label('total')
-    ).join(models.Venta).filter(models.Venta.fecha >= fecha_limite).group_by(models.Cliente.id).order_by(desc('total')).limit(5).all()
-    top_clientes = [{"nombre": n, "total": float(t)} for n, t in top_cli_q]
+    top_productos_query = db.query(
+        models.ItemVenta.producto_nombre,
+        func.sum(models.ItemVenta.cantidad).label('cantidad_total'),
+        func.sum(models.ItemVenta.subtotal).label('ingresos_total')
+    ).join(models.Venta).filter(
+        models.Venta.fecha >= fecha_limite
+    ).group_by(models.ItemVenta.producto_nombre).order_by(desc('ingresos_total')).limit(10).all()
+    
+    top_productos = [{
+        "producto": p[0],
+        "cantidad": float(p[1] or 0),
+        "ingresos": float(p[2] or 0)
+    } for p in top_productos_query]
+    
+    # Top Clientes (si hay relación con cliente)
+    top_clientes = []
     
     return {
         "ventas_total": float(total_ventas),
+        "gastos_total": float(total_gastos),
+        "utilidad_neta": utilidad_neta,
         "cantidad_ventas": cantidad_ventas,
         "ticket_promedio": float(ticket_promedio),
         "ventas_por_canal": ventas_por_canal,

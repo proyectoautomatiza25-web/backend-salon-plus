@@ -1,0 +1,52 @@
+[
+  {
+    "nombre": "Chocolate clasico XL",
+    "precio": 5550.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Galleta New York Nutella",
+    "precio": 3250.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Santa Cesar",
+    "precio": 9750.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Galleta New York Oreo",
+    "precio": 3250.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Barra vegana",
+    "precio": 2250.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Americano M",
+    "precio": 3550.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Americano XL",
+    "precio": 3950.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Americano honey S",
+    "precio": 3550.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Americano honey XL",
+    "precio": 4550.0,
+    "categoria": "General"
+  },
+  {
+    "nombre": "Chai Latte M",
+    "precio": 3950.0,
+    "categoria": "General"
+  }
+]

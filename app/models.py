@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Boolean, Integer, Numeric, DateTime, Fore
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timedelta
-from .database import Base
+from app.database import Base
 
 # --- FASE 1: FUDO CORE ---
 
@@ -64,11 +64,19 @@ class Cliente(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     fudo_cliente_id = Column(String, nullable=True, unique=True)
     nombre = Column(String(200))
-    telefono = Column(String(20))
+    telefono = Column(String(20), index=True)
+    whatsapp = Column(String(20), unique=True, index=True)
     email = Column(String(200))
+    birthdate = Column(DateTime, nullable=True)
     pedidos_totales = Column(Integer, default=0)
     gasto_total = Column(Numeric(14, 2), default=0)
     ultima_compra = Column(DateTime(timezone=True))
+    donde_nos_conocio = Column(String(100), nullable=True)
+
+    # --- LOYALTY PROGRAM (Kingdom VIP) ---
+    points = Column(Integer, default=0)
+    loyalty_level = Column(String(20), default="bronze") # bronze, silver, gold, platinum
+    stamps = Column(Integer, default=0) # 0-10 para café gratis
 
     ventas = relationship("Venta", back_populates="cliente")
 
@@ -127,6 +135,7 @@ class User(Base):
     # Salon Profile Fields
     business_name = Column(String, nullable=True)
     business_logo = Column(Text, nullable=True) # Base64
+    booking_slug = Column(String, unique=True, index=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Subscription Fields
@@ -142,6 +151,7 @@ class User(Base):
     services = relationship("Service", back_populates="owner")
     appointments = relationship("Appointment", back_populates="owner")
     clients = relationship("SalonClient", back_populates="owner")
+    products = relationship("SalonProduct", back_populates="owner")
 
 # --- SALON SAAS CORE ---
 
@@ -183,6 +193,16 @@ class SalonClient(Base):
     notes = Column(Text, nullable=True)
     last_visit = Column(DateTime, nullable=True)
 
+    # Medical specific fields
+    rut = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    birth_date = Column(DateTime, nullable=True)
+    prevision = Column(String, nullable=True) # Fonasa, Isapre, etc
+    category = Column(String, nullable=True)  # Crónico, etc
+    blood_type = Column(String, nullable=True)
+    allergies = Column(Text, nullable=True)
+    medications = Column(Text, nullable=True)
+
     owner = relationship("User", back_populates="clients")
     appointments = relationship("Appointment", back_populates="client")
 
@@ -199,10 +219,33 @@ class Appointment(Base):
     title = Column(String) # Service Name snapshot
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    status = Column(String, default="pending") # pending, confirmed, attended, no_show, cancelled
+    status = Column(String, default="pending") # pending, confirmed, attended, no_show, cancelled, block
     notes = Column(Text, nullable=True)
     price = Column(Numeric(10, 2), nullable=True)
+    
+    # Medical structured notes (SOAP)
+    anamnesis = Column(Text, nullable=True)
+    physical_exam = Column(Text, nullable=True)
+    diagnosis = Column(Text, nullable=True)
+    indications = Column(Text, nullable=True)
+    
+    # Measurements
+    weight = Column(String, nullable=True)
+    height = Column(String, nullable=True)
+    imc = Column(String, nullable=True)
     
     owner = relationship("User", back_populates="appointments")
     stylist = relationship("Stylist", back_populates="appointments")
     client = relationship("SalonClient", back_populates="appointments")
+
+class SalonProduct(Base):
+    __tablename__ = "salon_products"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_id = Column(String, ForeignKey("users.id"))
+    name = Column(String)
+    price = Column(Numeric(10, 2))
+    stock = Column(Integer, default=0)
+    category = Column(String, nullable=True)
+    
+    owner = relationship("User", back_populates="products")

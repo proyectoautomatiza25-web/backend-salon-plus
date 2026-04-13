@@ -15,14 +15,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
-    
-    # Generar link DIRECTO de suscripción de Mercado Pago (requiere tarjeta)
-    # Plan ID de PRODUCCIÓN (REAL - Sin trial para asegurar botón activo)
-    MP_PLAN_ID = "d9c3eb0556424b3b87f54c8f438e4c0d"
-    MP_ACCESS_TOKEN = "APP_USR-6703285773653661-012801-f17be76f714591ed53de2d4beeb4e6fa-3164912896"
-    checkout_url = f"https://www.mercadopago.cl/subscriptions/checkout?preapproval_plan_id={MP_PLAN_ID}&external_reference={new_user.id}&payer_email={new_user.email}"
-    print(f"✅ Checkout URL generada para {new_user.email}: {checkout_url}")
+    # Registro del usuario exitoso, no generamos link de Mercado Pago
+    new_user.checkout_url = None
 
     # Send Welcome Email
     try:
@@ -31,8 +25,6 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     except Exception as e:
         print(f"Error sending email: {e}")
         
-    # Inyectar el checkout_url en el objeto para que coincida con el esquema User
-    new_user.checkout_url = checkout_url
     return new_user
 
 @router.post("/login", response_model=schemas.Token)
@@ -49,6 +41,21 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @router.get("/me", response_model=schemas.User)
 def get_me(current_user: models.User = Depends(auth.get_current_user)):
+    return current_user
+
+@router.put("/me", response_model=schemas.User)
+def update_me(user_update: schemas.UserUpdate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    if user_update.booking_slug:
+        # Check if slug is taken by someone else
+        existing = db.query(models.User).filter(models.User.booking_slug == user_update.booking_slug).first()
+        if existing and existing.id != current_user.id:
+            raise HTTPException(status_code=400, detail="El link de reserva ya está ocupado por otro salón.")
+            
+    for key, value in user_update.model_dump(exclude_unset=True).items():
+        setattr(current_user, key, value)
+        
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 @router.post("/forgot-password")

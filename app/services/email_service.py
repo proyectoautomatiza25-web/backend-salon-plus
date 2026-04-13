@@ -9,40 +9,45 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_PORT = os.getenv("SMTP_PORT")
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+# Email configuration
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
+SMTP_PORT_STR = os.getenv("SMTP_PORT", "587").strip()
+SMTP_PORT = int(SMTP_PORT_STR) if SMTP_PORT_STR.isdigit() else 587
+SMTP_USER = os.getenv("SMTP_USER", "automatizakingdomcoffee@gmail.com").strip()
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").strip()
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "automatizakingdomcoffee@gmail.com").strip()
 
 def send_email(to_email: str, subject: str, body: str):
     """
-    Sends an email using the SMTP configuration.
+    Sends an email using the SMTP settings (Gmail).
     """
-    if not all([SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SENDER_EMAIL]):
-        logger.warning("SMTP configuration missing. Email not sent.")
-        # For development, just log
+    if not SMTP_PASSWORD:
+        logger.warning("SMTP_PASSWORD missing. Email not sent.")
         print(f"--- FAKE EMAIL SENT TO {to_email} ---\nSubject: {subject}\n{body}\n----------------------------------")
         return False
 
     try:
-        msg = MIMEMultipart()
-        msg['From'] = SENDER_EMAIL
+        msg = MIMEMultipart("alternative")
+        msg['From'] = f"KINGDOM COFFEE <{SENDER_EMAIL}>"
         msg['To'] = to_email
         msg['Subject'] = subject
 
-        msg.attach(MIMEText(body, 'html'))
+        # Si el body tiene HTML, lo adjuntamos como HTML
+        if "<html>" in body or "<div" in body:
+            msg.attach(MIMEText(body, 'html'))
+        else:
+            msg.attach(MIMEText(body, 'plain'))
 
-        with smtplib.SMTP(SMTP_HOST, int(SMTP_PORT)) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.send_message(msg)
-        
+        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
         logger.info(f"Email sent successfully to {to_email}")
         return True
 
     except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        logger.error(f"Error sending SMTP email to {to_email}: {str(e)}")
         return False
 
 def send_welcome_email(to_email: str):
@@ -56,7 +61,9 @@ def send_welcome_email(to_email: str):
             <p>Gracias por registrarte en la plataforma líder para gestión de salones de belleza y barberías.</p>
             <p>Estamos emocionados de ayudarte a llevar tu negocio al siguiente nivel.</p>
             <br/>
-            <a href="http://localhost:5173" style="background-color: #F472B6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Acceder a mi Cuenta</a>
+            <br/>
+            <p>Accede a tu cuenta aquí:</p>
+            <a href="https://salonplus.automatizasur.cl" style="background-color: #F472B6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Ingresar a Salon Plus</a>
             <br/><br/>
             <p>Saludos,<br/>El Equipo de Salon Plus by Automatiza Sur</p>
         </div>

@@ -20,9 +20,17 @@ class User(UserBase):
     trial_end_at: Optional[datetime] = None
     subscription_active: bool = False
     checkout_url: Optional[str] = None
+    business_name: Optional[str] = None
+    business_logo: Optional[str] = None
+    booking_slug: Optional[str] = None
     
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    business_name: Optional[str] = None
+    business_logo: Optional[str] = None
+    booking_slug: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -97,9 +105,11 @@ class VentaResponse(BaseModel):
 
 class DashboardStats(BaseModel):
     ventas_total: float
+    gastos_total: float
+    utilidad_neta: float
     cantidad_ventas: int
     ticket_promedio: float
-    ventas_por_canal: List[dict] # [{"canal": "salon", "total": 1000}]
+    ventas_por_canal: List[dict]
     top_productos: List[dict]
     top_clientes: List[dict]
 
@@ -147,12 +157,36 @@ class Service(ServiceBase):
     class Config:
         from_attributes = True
 
+# SalonProduct
+class SalonProductBase(BaseModel):
+    name: str
+    price: float
+    stock: int = 0
+    category: Optional[str] = None
+
+class SalonProductCreate(SalonProductBase):
+    pass
+
+class SalonProduct(SalonProductBase):
+    id: str
+    owner_id: str
+    class Config:
+        from_attributes = True
+
 # SalonClient
 class SalonClientBase(BaseModel):
     name: str
     phone: Optional[str] = None
     email: Optional[str] = None
     notes: Optional[str] = None
+    rut: Optional[str] = None
+    address: Optional[str] = None
+    birth_date: Optional[datetime] = None
+    prevision: Optional[str] = None
+    category: Optional[str] = None
+    blood_type: Optional[str] = None
+    allergies: Optional[str] = None
+    medications: Optional[str] = None
 
 class SalonClientCreate(SalonClientBase):
     pass
@@ -175,6 +209,13 @@ class AppointmentBase(BaseModel):
     status: str = "pending"
     notes: Optional[str] = None
     price: Optional[float] = None
+    anamnesis: Optional[str] = None
+    physical_exam: Optional[str] = None
+    diagnosis: Optional[str] = None
+    indications: Optional[str] = None
+    weight: Optional[str] = None
+    height: Optional[str] = None
+    imc: Optional[str] = None
 
 class AppointmentCreate(AppointmentBase):
     pass
@@ -184,3 +225,20 @@ class Appointment(AppointmentBase):
     owner_id: str
     class Config:
         from_attributes = True
+
+# --- PUBLIC BOOKING SCHEMAS ---
+class PublicSalonInfo(BaseModel):
+    business_name: Optional[str] = None
+    business_logo: Optional[str] = None
+    stylists: List[Stylist]
+    services: List[Service]
+
+class PublicBookingCreate(BaseModel):
+    stylist_id: str
+    service_id: str
+    start_time: datetime
+    client_name: str
+    client_phone: str
+    client_email: Optional[str] = None
+    client_rut: Optional[str] = None
+    notes: Optional[str] = None
